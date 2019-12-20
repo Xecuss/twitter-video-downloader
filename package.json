@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Xecuss/twitter-video-downloader#readme",
   "devDependencies": {
+    "@types/node": "^12.12.21",
     "typescript": "^3.7.3"
   },
   "dependencies": {
