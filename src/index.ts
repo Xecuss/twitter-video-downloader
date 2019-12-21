@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import fs, { WriteStream } from 'fs';
 import { Stream } from 'stream';
 import { EventEmitter } from 'events';
-import ffmpeg from 'ffmpeg';
+import { exec } from 'child_process';
 
 const videoApiURL: string = 'https://api.twitter.com/1.1/videos/tweet/config/',
       videoPlayerURL: string = 'https://twitter.com/i/videos/tweet/',
@@ -72,16 +72,17 @@ export default class Downloader extends EventEmitter{
     }
 
     private async downLoadM3U8(url: string, path: string, guestToken: string): Promise<string>{
-        let video = await new ffmpeg(url);
-        video.addCommand('-headers', `x-guest-token: ${guestToken}`);
-        video.addCommand('-c', `copy`);
+        let command = `ffmpeg -i ${url} -headers "x-guest-token": ${guestToken} -c copy ${path}`;
         return new Promise((resolve, reject)=>{
-            video.save(path, (err, files) => {
-                if(err){
-                    console.error(err);
-                    reject(err);
-                }
-                resolve(files);
+            let child = exec(command);
+            if(child.stdout){
+                child.stdout.on('data', (data) => {
+                    console.log(`stdout: ${data}`);
+                });
+            }
+            child.on('exit', (code, singnal) => {
+                if(code == 0) resolve(code.toString());
+                else reject((code || -1).toString());
             });
         });
     }
