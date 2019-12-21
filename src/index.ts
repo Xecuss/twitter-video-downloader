@@ -78,6 +78,7 @@ export default class Downloader extends EventEmitter{
         return new Promise((resolve, reject)=>{
             video.save(path, (err, files) => {
                 if(err){
+                    console.error(err);
                     reject(err);
                 }
                 resolve(files);
