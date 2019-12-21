@@ -1,10 +1,12 @@
 import axios, { AxiosResponse } from 'axios';
-import rawFs, { promises as fs, WriteStream } from 'fs';
+import fs, { WriteStream } from 'fs';
 import { Stream } from 'stream';
 import { EventEmitter } from 'events';
+import ffmpeg from 'ffmpeg';
 
 const videoApiURL: string = 'https://api.twitter.com/1.1/videos/tweet/config/',
-      videoPlayerURL: string = 'https://twitter.com/i/videos/tweet/';
+      videoPlayerURL: string = 'https://twitter.com/i/videos/tweet/',
+      guestTokenURL: string = "https://api.twitter.com/1.1/guest/activate.json";
 
 export default class Downloader extends EventEmitter{
     private debugFlag: boolean;
@@ -37,11 +39,12 @@ export default class Downloader extends EventEmitter{
         return null;
     }
 
-    private async getPlayUrl(twitter_id: string, token: string): Promise<string | null>{
+    private async getPlayUrl(twitter_id: string, token: string, guestToken: string): Promise<string | null>{
         let url = `${videoApiURL}${twitter_id}.json`,
             videoConfigResponse: AxiosResponse = await axios.get(url, {
                 headers: {
-                    "Authorization": `Bearer ${token}`
+                    "Authorization": `Bearer ${token}`,
+                    "x-guest-token": guestToken
                 }
             }),
             videoConfig = videoConfigResponse.data;
@@ -54,15 +57,34 @@ export default class Downloader extends EventEmitter{
         return null;
     }
 
-    private async downLoadFile(url: string, path: string): Promise<void>{
+    private async downLoadFile(url: string, path: string, guestToken: string): Promise<void>{
         let response: AxiosResponse = await axios.get(url, {
-            responseType: "stream"
+            responseType: "stream",
+            headers: {
+                "x-guest-token": guestToken
+            }
         }),
         downloadStream: Stream = response.data;
 
-        let writeStream: WriteStream = rawFs.createWriteStream(path);
-        
+        let writeStream: WriteStream = fs.createWriteStream(path);
+
         downloadStream.pipe(writeStream);
+    }
+
+    public async downLoadM3U8(url: string, path: string, guestToken: string): Promise<void>{
+        let ff = await new ffmpeg(url);
+    }
+
+    private async getGuestToken(token: string): Promise<string | null>{
+        let guestTokenResponse: AxiosResponse = await axios.post(guestTokenURL, '', {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        if(guestTokenResponse.data.guest_token){
+            return <string>guestTokenResponse.data.guest_token;
+        }
+        return null;
     }
 
     public async download(twitterId: string, path: string): Promise<void>{
@@ -71,13 +93,21 @@ export default class Downloader extends EventEmitter{
             throw new Error('get Bearer Token Fail!');   
         }
 
-        let url: string | null = await this.getPlayUrl(twitterId, token);
+        let guestToken: string | null = await this.getGuestToken(token);
+        if(!guestToken){
+            throw new Error('get Guest Token Fail!');
+        }
+
+        let url: string | null = await this.getPlayUrl(twitterId, token, guestToken);
         if(!url){
             throw new Error('get video URL Fail!');
         }
 
         if(url.endsWith(".mp4")){
-            await this.downLoadFile(url, `${path}${twitterId}.mp4`);
+            await this.downLoadFile(url, `${path}${twitterId}.mp4`, guestToken);
+        }
+        else if(url.endsWith(".m3u8")){
+
         }
     }
 }
