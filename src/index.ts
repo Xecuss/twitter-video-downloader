@@ -74,6 +74,7 @@ export default class Downloader extends EventEmitter{
     private async downLoadM3U8(url: string, path: string, guestToken: string): Promise<string>{
         let video = await new ffmpeg(url);
         video.addCommand('-headers', `x-guest-token: ${guestToken}`);
+        video.addCommand('-c', `copy`);
         return new Promise((resolve, reject)=>{
             video.save(path, (err, files) => {
                 if(err){
@@ -112,11 +113,17 @@ export default class Downloader extends EventEmitter{
             throw new Error('get video URL Fail!');
         }
 
-        if(url.indexOf(".mp4") != -1){
-            await this.downLoadFile(url, `${path}${twitterId}.mp4`, guestToken);
+        try{
+            this.debugFlag && console.log('try to download...');
+            if(url.indexOf(".mp4") != -1){
+                await this.downLoadFile(url, `${path}${twitterId}.mp4`, guestToken);
+            }
+            else if(url.indexOf(".m3u8") != -1){
+                await this.downLoadM3U8(url, `${path}${twitterId}.mp4`, guestToken);
+            }
         }
-        else if(url.indexOf(".m3u8") != -1){
-            await this.downLoadM3U8(url, `${path}${twitterId}.mp4`, guestToken);
+        catch(err){
+            this.debugFlag && console.error(`fail: ${err}`);
         }
     }
 }
