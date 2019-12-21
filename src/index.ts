@@ -41,9 +41,10 @@ export async function getPlayList(twitter_id: string, token: string): Promise<st
 }
 
 export async function downLoadFile(url: string, path: string): Promise<void>{
-    let downloadStream: Stream = await axios.get(url, {
+    let response: AxiosResponse = await axios.get(url, {
         responseType: "stream"
-    });
+    }),
+    downloadStream: Stream = response.data;
     let writeStream: WriteStream = rawFs.createWriteStream(path);
     downloadStream.pipe(writeStream);
 }
