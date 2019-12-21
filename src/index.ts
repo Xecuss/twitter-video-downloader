@@ -71,9 +71,17 @@ export default class Downloader extends EventEmitter{
         downloadStream.pipe(writeStream);
     }
 
-    public async downLoadM3U8(url: string, path: string, guestToken: string): Promise<void>{
-        let ff = await new ffmpeg(url);
-        console.log(ff.metadata);
+    private async downLoadM3U8(url: string, path: string, guestToken: string): Promise<string>{
+        let video = await new ffmpeg(url);
+        video.addCommand('-headers', `x-guest-token: ${guestToken}`);
+        return new Promise((resolve, reject)=>{
+            video.save(path, (err, files) => {
+                if(err){
+                    reject(err);
+                }
+                resolve(files);
+            });
+        });
     }
 
     private async getGuestToken(token: string): Promise<string | null>{
@@ -108,7 +116,7 @@ export default class Downloader extends EventEmitter{
             await this.downLoadFile(url, `${path}${twitterId}.mp4`, guestToken);
         }
         else if(url.endsWith(".m3u8")){
-
+            await this.downLoadM3U8(url, `${path}${twitterId}.mp4`, guestToken);
         }
     }
 }
