@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
-import { promises as fs } from 'fs';
+import rawFs, { promises as fs, WriteStream } from 'fs';
+import { Stream } from 'stream';
 
 const videoApiURL: string = 'https://api.twitter.com/1.1/videos/tweet/config/',
       videoPlayerURL: string = 'https://twitter.com/i/videos/tweet/';
@@ -27,11 +28,22 @@ export async function getBearerToken(twitter_id: string): Promise<string>{
 
 export async function getPlayList(twitter_id: string, token: string): Promise<string>{
     let url = `${videoApiURL}${twitter_id}.json`,
-        videoConfig = await axios.get(url, {
+        videoConfigResponse: AxiosResponse = await axios.get(url, {
             headers: {
                 "Authorization": `Bearer ${token}`
             }
-        });
-    console.log(videoConfig);
+        }),
+        videoConfig = videoConfigResponse.data;
+    if(videoConfig && videoConfig.track){
+        return videoConfig.track.playbackUrl;
+    }
     return '';
+}
+
+export async function downLoadFile(url: string, path: string): Promise<void>{
+    let downloadStream: Stream = await axios.get(url, {
+        responseType: "stream"
+    });
+    let writeStream: WriteStream = rawFs.createWriteStream(path);
+    downloadStream.pipe(writeStream);
 }
