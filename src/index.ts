@@ -80,6 +80,11 @@ export default class Downloader extends EventEmitter{
                     console.log(`stdout: ${data}`);
                 });
             }
+            if(child.stderr){
+                child.stdout?.on('data', (data) => {
+                    console.error(`stderr: ${data}`);
+                })
+            }
             child.on('exit', (code, singnal) => {
                 if(code == 0) resolve(code.toString());
                 else reject((code || -1).toString());
