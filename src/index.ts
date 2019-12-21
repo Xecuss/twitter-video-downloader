@@ -112,10 +112,10 @@ export default class Downloader extends EventEmitter{
             throw new Error('get video URL Fail!');
         }
 
-        if(url.endsWith(".mp4")){
+        if(url.indexOf(".mp4") != -1){
             await this.downLoadFile(url, `${path}${twitterId}.mp4`, guestToken);
         }
-        else if(url.endsWith(".m3u8")){
+        else if(url.indexOf(".m3u8") != -1){
             await this.downLoadM3U8(url, `${path}${twitterId}.mp4`, guestToken);
         }
     }
