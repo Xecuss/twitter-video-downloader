@@ -73,6 +73,7 @@ export default class Downloader extends EventEmitter{
 
     public async downLoadM3U8(url: string, path: string, guestToken: string): Promise<void>{
         let ff = await new ffmpeg(url);
+        console.log(ff.metadata);
     }
 
     private async getGuestToken(token: string): Promise<string | null>{
