@@ -123,7 +123,7 @@ export default class Downloader extends EventEmitter{
             }
         }
         catch(err){
-            this.debugFlag && console.error(`fail: ${err}`);
+            this.debugFlag && console.error(`fail: ${err.toString()}`);
         }
     }
 }
