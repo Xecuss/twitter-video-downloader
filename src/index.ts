@@ -74,20 +74,15 @@ export default class Downloader extends EventEmitter{
     private async downLoadM3U8(url: string, path: string, guestToken: string): Promise<string>{
         let command = `ffmpeg -i ${url} -headers "x-guest-token": ${guestToken} -c copy ${path}`;
         return new Promise((resolve, reject)=>{
-            let child = exec(command);
-            if(child.stdout){
-                child.stdout.on('data', (data) => {
-                    console.log(`stdout: ${data}`);
-                });
-            }
-            if(child.stderr){
-                child.stdout?.on('data', (data) => {
-                    console.error(`stderr: ${data}`);
-                })
-            }
-            child.on('exit', (code, singnal) => {
-                if(code == 0) resolve(code.toString());
-                else reject((code || -1).toString());
+            let child = exec(command, (err, stdout, stderr) => {
+                console.log(stdout);
+                console.error(stderr);
+                if(err){
+                    reject(err);
+                }
+                else{
+                    resolve();
+                }
             });
         });
     }
