@@ -6,7 +6,7 @@ let token: string = "AAAAAAAAAAAAAAAAAAAAAIK1zgAAAAAA2tUWuhGZ2JceoId5GwYWU5GspY4
 async function main(): Promise<void>{
     let str: string = await getPlayList(targetId, token);
     if(str.endsWith(".mp4")){
-        await downLoadFile(str, `/home/kaiser/website/public/${targetId}.mp4`);
+        await downLoadFile(str, `/home/kaiser/website/static/${targetId}.mp4`);
     }
 }
 main();
