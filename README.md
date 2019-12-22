@@ -5,7 +5,7 @@ This is the Typescript implementation of [h4ckninja/twitter-video-downloader](ht
 ## Installation
 
 ```shell
-npm install twitter-video-downloader --save
+npm install xecus-twitter-video --save
 ```
 
 This project uses ffmpeg to download M3U8 files, so you should ensure that ffmpeg has been installed.
@@ -13,7 +13,7 @@ This project uses ffmpeg to download M3U8 files, so you should ensure that ffmpe
 ## usage
 
 ```typescript
-import Downloader from './index';
+import Downloader from 'xecus-twitter-video';
 
 let debugFlag: boolean = true;
 
