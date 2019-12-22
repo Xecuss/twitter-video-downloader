@@ -10,7 +10,7 @@
     "test": "tsc && node ./build/test.js",
     "clean": "rm -rf build"
   },
-  "types": "build/Arcaea.d.ts",
+  "types": "./build/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Xecuss/twitter-video-downloader.git"
