@@ -66,9 +66,13 @@ export default class Downloader extends EventEmitter{
         }),
         downloadStream: Stream = response.data;
 
-        let writeStream: WriteStream = fs.createWriteStream(path);
+        return new Promise((resolve, reject) => {
+            let writeStream: WriteStream = fs.createWriteStream(path);
 
-        downloadStream.pipe(writeStream);
+            downloadStream.pipe(writeStream);
+
+            writeStream.on('finish', resolve);
+        });
     }
 
     private async downLoadM3U8(url: string, path: string, guestToken: string): Promise<string>{
@@ -99,7 +103,7 @@ export default class Downloader extends EventEmitter{
         return null;
     }
 
-    public async download(twitterId: string, path: string): Promise<void>{
+    public async download(twitterId: string, path: string): Promise<string>{
         let token: string | null = await this.getBearerToken(twitterId);
         if(!token){
             throw new Error('get Bearer Token Fail!');   
@@ -115,17 +119,14 @@ export default class Downloader extends EventEmitter{
             throw new Error('get video URL Fail!');
         }
 
-        try{
-            this.debugFlag && console.log('try to download...');
-            if(url.indexOf(".mp4") != -1){
-                await this.downLoadFile(url, `${path}${twitterId}.mp4`, guestToken);
-            }
-            else if(url.indexOf(".m3u8") != -1){
-                await this.downLoadM3U8(url, `${path}${twitterId}.mp4`, guestToken);
-            }
+        this.debugFlag && console.log('try to download...');
+        if(url.indexOf(".mp4") != -1){
+            await this.downLoadFile(url, `${path}${twitterId}.mp4`, guestToken);
         }
-        catch(err){
-            this.debugFlag && console.error(`fail: ${JSON.stringify(err)}`);
+        else if(url.indexOf(".m3u8") != -1){
+            await this.downLoadM3U8(url, `${path}${twitterId}.mp4`, guestToken);
         }
+
+        return `${path}${twitterId}.mp4`;
     }
 }
