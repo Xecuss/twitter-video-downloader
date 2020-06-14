@@ -57,12 +57,13 @@ export default class Downloader extends EventEmitter{
         return null;
     }
 
-    private async downLoadFile(url: string, path: string, guestToken: string): Promise<void>{
+    private async downLoadFile(url: string, path: string, guestToken?: string): Promise<void>{
+        let headers = guestToken ? {
+            "x-guest-token": guestToken
+        } : {};
         let response: AxiosResponse = await axios.get(url, {
             responseType: "stream",
-            headers: {
-                "x-guest-token": guestToken
-            }
+            headers
         }),
         downloadStream: Stream = response.data;
 
@@ -75,8 +76,9 @@ export default class Downloader extends EventEmitter{
         });
     }
 
-    private async downLoadM3U8(url: string, path: string, guestToken: string): Promise<string>{
-        let command = `ffmpeg -i ${url} -headers "x-guest-token: ${guestToken}" -c copy ${path}`;
+    private async downLoadM3U8(url: string, path: string, guestToken?: string): Promise<string>{
+        let tokenArgs = guestToken ? ` "x-guest-token: ${guestToken}"` : '';
+        let command = `ffmpeg -i ${url} -headers${tokenArgs} -c copy ${path}`;
         return new Promise((resolve, reject) => {
             exec(command, (err, stdout, stderr) => {
                 if(err){
@@ -128,5 +130,23 @@ export default class Downloader extends EventEmitter{
         }
 
         return `${path}${twitterId}.mp4`;
+    }
+
+    public async downloadPublic(twitterId: string, url: string, path: string): Promise<string>{
+        this.debugFlag && console.log('try to download public...');
+        if(url.indexOf(".mp4") != -1){
+            await this.downLoadFile(url, `${path}${twitterId}.mp4`);
+        }
+        else if(url.indexOf(".m3u8") != -1){
+            await this.downLoadM3U8(url, `${path}${twitterId}.mp4`);
+        }
+
+        return `${path}${twitterId}.mp4`;
+    }
+
+    public async downloadPublicToGif(twitterId: string, url: string, path: string): Promise<string>{
+        await this.downLoadM3U8(url, `${path}${twitterId}.gif`);
+
+        return `${path}${twitterId}.gif`;
     }
 }
